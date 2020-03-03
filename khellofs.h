@@ -41,7 +41,10 @@ struct dentry *hellofs_lookup(struct inode *parent_inode,
 int hellofs_mkdir(struct inode *dir, struct dentry *dentry,
                    umode_t mode);
 
-int hellofs_readdir(struct file *filp, void *dirent, filldir_t filldir);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0)
+#error fs api changed in linux 3.11.0. Please use a better kernel to build my code!
+#endif
+int hellofs_iterate(struct file *filp, struct dir_context *ctx);
 
 ssize_t hellofs_read(struct file * filp, char __user * buf, size_t len,
                       loff_t * ppos);

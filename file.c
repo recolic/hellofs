@@ -58,10 +58,11 @@ ssize_t hellofs_write(struct file *filp, const char __user *buf, size_t len,
     hellofs_inode = HELLOFS_INODE(inode);
     hellofs_sb = HELLOFS_SB(sb);
 
-    ret = generic_write_checks(filp, ppos, &len, 0);
-    if (ret) {
-        return ret;
-    }
+    // Recolic: compilation issue, temporary disable. TODO
+    // ret = generic_write_checks(filp, ppos, &len, 0);
+    // if (ret) {
+    //     return ret;
+    // }
 
     bh = sb_bread(sb, hellofs_inode->data_block_no);
     if (!bh) {

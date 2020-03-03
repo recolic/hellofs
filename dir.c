@@ -1,6 +1,10 @@
 #include "khellofs.h"
 
-int hellofs_readdir(struct file *filp, void *dirent, filldir_t filldir) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0)
+#error fs api changed in linux 3.11.0. Please use a better kernel to build my code!
+#endif
+
+int hellofs_iterate(struct file *filp, struct dir_context *ctx) {
     loff_t pos;
     struct inode *inode;
     struct super_block *sb;
@@ -9,8 +13,8 @@ int hellofs_readdir(struct file *filp, void *dirent, filldir_t filldir) {
     struct hellofs_dir_record *dir_record;
     uint64_t i;
 
-    pos = filp->f_pos;
-    inode = filp->f_dentry->d_inode;
+    pos = ctx->pos;
+    inode = filp->f_path.dentry->d_inode;
     sb = inode->i_sb;
     hellofs_inode = HELLOFS_INODE(inode);
 
@@ -25,7 +29,7 @@ int hellofs_readdir(struct file *filp, void *dirent, filldir_t filldir) {
         printk(KERN_ERR
                "Inode %llu of dentry %s is not a directory\n",
                hellofs_inode->inode_no,
-               filp->f_dentry->d_name.name);
+               filp->f_path.dentry->d_name.name);
         return -ENOTDIR;
     }
 
@@ -34,9 +38,8 @@ int hellofs_readdir(struct file *filp, void *dirent, filldir_t filldir) {
 
     dir_record = (struct hellofs_dir_record *)bh->b_data;
     for (i = 0; i < hellofs_inode->dir_children_count; i++) {
-        filldir(dirent, dir_record->filename, HELLOFS_FILENAME_MAXLEN, pos,
-                dir_record->inode_no, DT_UNKNOWN);
-        filp->f_pos += sizeof(struct hellofs_dir_record);
+        dir_emit(ctx, dir_record->filename, HELLOFS_FILENAME_MAXLEN, dir_record->inode_no, DT_UNKNOWN);
+        ctx->pos += sizeof(struct hellofs_dir_record);
         pos += sizeof(struct hellofs_dir_record);
         dir_record++;
     }

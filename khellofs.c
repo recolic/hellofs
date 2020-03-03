@@ -23,7 +23,7 @@ const struct inode_operations hellofs_inode_ops = {
 
 const struct file_operations hellofs_dir_operations = {
     .owner = THIS_MODULE,
-    .readdir = hellofs_readdir,
+    .iterate = hellofs_iterate,
 };
 
 const struct file_operations hellofs_file_operations = {

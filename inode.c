@@ -1,4 +1,5 @@
 #include "khellofs.h"
+#include <linux/timekeeping.h>
 
 void hellofs_destroy_inode(struct inode *inode) {
     struct hellofs_inode *hellofs_inode = HELLOFS_INODE(inode);
@@ -17,7 +18,7 @@ void hellofs_fill_inode(struct super_block *sb, struct inode *inode,
     // TODO hope we can use hellofs_inode to store timespec
     inode->i_atime = inode->i_mtime 
                    = inode->i_ctime
-                   = CURRENT_TIME;
+                   = current_time(inode);
     inode->i_private = hellofs_inode;    
     
     if (S_ISDIR(hellofs_inode->mode)) {
