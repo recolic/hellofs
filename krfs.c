@@ -33,13 +33,9 @@ const struct file_operations rfs_file_operations = {
 
 struct kmem_cache *rfs_inode_cache = NULL;
 
-static int __init rfs_init(void)
-{
-    rfs_inode_cache = kmem_cache_create("rfs_inode_cache",
-                                         sizeof(struct rfs_inode),
-                                         0,
-                                         (SLAB_RECLAIM_ACCOUNT| SLAB_MEM_SPREAD),
-                                         NULL);
+static int __init rfs_init(void) {
+    rfs_inode_cache = kmem_cache_create("rfs_inode_cache", sizeof(struct rfs_inode), 0,
+                                        (SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD), NULL);
     if (!rfs_inode_cache) {
         return -ENOMEM;
     }
@@ -53,15 +49,13 @@ static int __init rfs_init(void)
     return ret;
 }
 
-static void __exit rfs_exit(void)
-{
+static void __exit rfs_exit(void) {
     kmem_cache_destroy(rfs_inode_cache);
 
     if (likely(unregister_filesystem(&rfs_fs_type) == 0)) {
         printk(KERN_INFO "Sucessfully unregistered rfs\n");
     } else {
-        printk(KERN_ERR "Failed to unregister rfs. Error code: %d\n",
-               ret);
+        printk(KERN_ERR "Failed to unregister rfs. Error code: %d\n", ret);
     }
 }
 

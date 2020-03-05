@@ -7,14 +7,12 @@ static int rfs_fill_super(struct super_block *sb, void *data, int silent) {
     BUG_ON(!bh);
     auto rfs_sb = (struct rfs_superblock *)bh->b_data;
     if (unlikely(rfs_sb->magic != RFS_MAGIC)) {
-        printk(KERN_ERR
-               "Mount rfs filesystem: Wrong magic number in superblock: %llu != %llu\n",
+        printk(KERN_ERR "Mount rfs filesystem: Wrong magic number in superblock: %llu != %llu\n",
                rfs_sb->magic, (uint64_t)RFS_MAGIC);
         goto release;
     }
     if (unlikely(sb->s_blocksize != rfs_sb->blocksize)) {
-        printk(KERN_ERR
-               "rfs seem to be formatted with mismatching blocksize: %lu\n",
+        printk(KERN_ERR "rfs seem to be formatted with mismatching blocksize: %lu\n",
                sb->s_blocksize);
         goto release;
     }
@@ -44,30 +42,25 @@ release:
     return ret;
 }
 
-struct dentry *rfs_mount(struct file_system_type *fs_type,
-                             int flags, const char *dev_name,
-                             void *data) {
+struct dentry *rfs_mount(struct file_system_type *fs_type, int flags, const char *dev_name,
+                         void *data) {
     auto ret = mount_bdev(fs_type, flags, dev_name, data, rfs_fill_super);
 
     if (unlikely(IS_ERR(ret))) {
         printk(KERN_ERR "Error mounting rfs.\n");
     } else {
-        printk(KERN_INFO "rfs is succesfully mounted on: %s\n",
-               dev_name);
+        printk(KERN_INFO "rfs is succesfully mounted on: %s\n", dev_name);
     }
 
     return ret;
 }
 
 void rfs_kill_superblock(struct super_block *sb) {
-    printk(KERN_INFO
-           "rfs superblock is destroyed. Unmount succesful.\n");
+    printk(KERN_INFO "rfs superblock is destroyed. Unmount succesful.\n");
     kill_block_super(sb);
 }
 
-void rfs_put_super(struct super_block *sb) {
-    return;
-}
+void rfs_put_super(struct super_block *sb) { return; }
 
 void rfs_save_sb(struct super_block *sb) {
 

@@ -54,7 +54,6 @@ struct rfs_inode {
     };
 };
 
-
 static const uint64_t RFS_SUPERBLOCK_BLOCK_NO = 0;
 static const uint64_t RFS_INODE_BITMAP_BLOCK_NO = 1;
 static const uint64_t RFS_DATA_BLOCK_BITMAP_BLOCK_NO = 2;
@@ -67,20 +66,17 @@ static const uint64_t RFS_ROOTDIR_DATA_BLOCK_NO_OFFSET = 0;
 
 /* Helper functions */
 
-static inline uint64_t RFS_INODES_PER_BLOCK_HSB(
-        struct rfs_superblock *rfs_sb) {
+static inline uint64_t RFS_INODES_PER_BLOCK_HSB(struct rfs_superblock *rfs_sb) {
     return rfs_sb->blocksize / sizeof(struct rfs_inode);
 }
 
-static inline uint64_t RFS_DATA_BLOCK_TABLE_START_BLOCK_NO_HSB(
-        struct rfs_superblock *rfs_sb) {
-    return RFS_INODE_TABLE_START_BLOCK_NO
-           + rfs_sb->inode_table_size / RFS_INODES_PER_BLOCK_HSB(rfs_sb)
-           + 1;
+static inline uint64_t RFS_DATA_BLOCK_TABLE_START_BLOCK_NO_HSB(struct rfs_superblock *rfs_sb) {
+    return RFS_INODE_TABLE_START_BLOCK_NO +
+           rfs_sb->inode_table_size / RFS_INODES_PER_BLOCK_HSB(rfs_sb) + 1;
 }
 
 /* Debug function */
-#define RLIB_KTRACE_FUNC(name) \
+#define RLIB_KTRACE_FUNC(name)                                                                     \
     printk(KERN_ALERT "Recolic ktrace: [" RLIB_MACRO_TO_CSTR(name) "] called.\n")
 
 #endif /*__RFS_H__*/

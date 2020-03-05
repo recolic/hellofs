@@ -20,9 +20,7 @@ int rfs_iterate(struct file *filp, struct dir_context *ctx) {
     printk(KERN_INFO "readdir: rfs_inode->inode_no=%llu", rfs_inode->inode_no);
 
     if (unlikely(!S_ISDIR(rfs_inode->mode))) {
-        printk(KERN_ERR
-               "Inode %llu of dentry %s is not a directory\n",
-               rfs_inode->inode_no,
+        printk(KERN_ERR "Inode %llu of dentry %s is not a directory\n", rfs_inode->inode_no,
                filp->f_path.dentry->d_name.name);
         return -ENOTDIR;
     }
