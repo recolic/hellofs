@@ -35,8 +35,6 @@ struct kmem_cache *rfs_inode_cache = NULL;
 
 static int __init rfs_init(void)
 {
-    int ret;
-
     rfs_inode_cache = kmem_cache_create("rfs_inode_cache",
                                          sizeof(struct rfs_inode),
                                          0,
@@ -46,8 +44,7 @@ static int __init rfs_init(void)
         return -ENOMEM;
     }
 
-    ret = register_filesystem(&rfs_fs_type);
-    if (likely(0 == ret)) {
+    if (likely(register_filesystem(&rfs_fs_type) == 0)) {
         printk(KERN_INFO "Sucessfully registered rfs\n");
     } else {
         printk(KERN_ERR "Failed to register rfs. Error code: %d\n", ret);
@@ -58,12 +55,9 @@ static int __init rfs_init(void)
 
 static void __exit rfs_exit(void)
 {
-    int ret;
-
-    ret = unregister_filesystem(&rfs_fs_type);
     kmem_cache_destroy(rfs_inode_cache);
 
-    if (likely(ret == 0)) {
+    if (likely(unregister_filesystem(&rfs_fs_type) == 0)) {
         printk(KERN_INFO "Sucessfully unregistered rfs\n");
     } else {
         printk(KERN_ERR "Failed to unregister rfs. Error code: %d\n",

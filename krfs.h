@@ -71,27 +71,19 @@ static inline uint64_t RFS_INODES_PER_BLOCK(struct super_block *sb) {
 
 // Given the inode_no, calcuate which block in inode table contains the corresponding inode
 static inline uint64_t RFS_INODE_BLOCK_OFFSET(struct super_block *sb, uint64_t inode_no) {
-    struct rfs_superblock *rfs_sb;
-    rfs_sb = RFS_SB(sb);
-    return inode_no / RFS_INODES_PER_BLOCK_HSB(rfs_sb);
+    return inode_no / RFS_INODES_PER_BLOCK_HSB(RFS_SB(sb));
 }
 static inline uint64_t RFS_INODE_BYTE_OFFSET(struct super_block *sb, uint64_t inode_no) {
-    struct rfs_superblock *rfs_sb;
-    rfs_sb = RFS_SB(sb);
-    return (inode_no % RFS_INODES_PER_BLOCK_HSB(rfs_sb)) * sizeof(struct rfs_inode);
+    return (inode_no % RFS_INODES_PER_BLOCK_HSB(RFS_SB(sb))) * sizeof(struct rfs_inode);
 }
 
 static inline uint64_t RFS_DIR_MAX_RECORD(struct super_block *sb) {
-    struct rfs_superblock *rfs_sb;
-    rfs_sb = RFS_SB(sb);
-    return rfs_sb->blocksize / sizeof(struct rfs_dir_record);
+    return RFS_SB(sb)->blocksize / sizeof(struct rfs_dir_record);
 }
 
 // From which block does data blocks start
 static inline uint64_t RFS_DATA_BLOCK_TABLE_START_BLOCK_NO(struct super_block *sb) {
-    struct rfs_superblock *rfs_sb;
-    rfs_sb = RFS_SB(sb);
-    return RFS_DATA_BLOCK_TABLE_START_BLOCK_NO_HSB(rfs_sb);
+    return RFS_DATA_BLOCK_TABLE_START_BLOCK_NO_HSB(RFS_SB(sb));
 }
 
 void rfs_save_sb(struct super_block *sb);

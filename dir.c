@@ -5,22 +5,15 @@
 #endif
 
 int rfs_iterate(struct file *filp, struct dir_context *ctx) {
-    loff_t pos;
-    struct inode *inode;
-    struct super_block *sb;
-    struct buffer_head *bh;
-    struct rfs_inode *rfs_inode;
-    struct rfs_dir_record *dir_record;
-    uint64_t i;
     RLIB_KTRACE_FUNC(iterate);
 
-    pos = ctx->pos;
-    inode = filp->f_path.dentry->d_inode;
-    sb = inode->i_sb;
-    rfs_inode = RFS_INODE(inode);
+    auto inode = filp->f_path.dentry->d_inode;
+    auto sb = inode->i_sb;
+    auto rfs_inode = RFS_INODE(inode);
 
-    if (pos) {
+    if (ctx->pos) {
         // TODO @Sankar: we use a hack of reading pos to figure if we have filled in data.
+        printk(KERN_ALERT "iterate, pos != 0.\n");
         return 0;
     }
 
@@ -34,14 +27,13 @@ int rfs_iterate(struct file *filp, struct dir_context *ctx) {
         return -ENOTDIR;
     }
 
-    bh = sb_bread(sb, rfs_inode->data_block_no);
+    auto bh = sb_bread(sb, rfs_inode->data_block_no);
     BUG_ON(!bh);
 
-    dir_record = (struct rfs_dir_record *)bh->b_data;
-    for (i = 0; i < rfs_inode->dir_children_count; i++) {
+    auto dir_record = (struct rfs_dir_record *)bh->b_data;
+    for (auto i = 0; i < rfs_inode->dir_children_count; i++) {
         dir_emit(ctx, dir_record->filename, RFS_FILENAME_MAXLEN, dir_record->inode_no, DT_UNKNOWN);
         ctx->pos += sizeof(struct rfs_dir_record);
-        pos += sizeof(struct rfs_dir_record);
         dir_record++;
     }
     brelse(bh);
