@@ -157,18 +157,12 @@ int rfs_alloc_data_block(struct super_block *sb, uint64_t *out_data_block_no) {
 
 int rfs_create_inode(struct inode *dir, struct dentry *dentry,
                          umode_t mode) {
-    struct super_block *sb;
-    struct rfs_superblock *rfs_sb;
-    uint64_t inode_no;
-    struct rfs_inode *rfs_inode;
-    struct inode *inode;
-    int ret;
-
-    sb = dir->i_sb;
-    rfs_sb = RFS_SB(sb);
+    auto sb = dir->i_sb;
+    auto rfs_sb = RFS_SB(sb);
 
     /* Create rfs_inode */
-    ret = rfs_alloc_rfs_inode(sb, &inode_no);
+    uint64_t inode_no;
+    auto ret = rfs_alloc_rfs_inode(sb, &inode_no);
     if (0 != ret) {
         printk(KERN_ERR "Unable to allocate on-disk inode. "
                         "Is inode table full? "
@@ -176,7 +170,7 @@ int rfs_create_inode(struct inode *dir, struct dentry *dentry,
                         rfs_sb->inode_count);
         return -ENOSPC;
     }
-    rfs_inode = kmem_cache_alloc(rfs_inode_cache, GFP_KERNEL);
+    auto rfs_inode = (struct rfs_inode *)kmem_cache_alloc(rfs_inode_cache, GFP_KERNEL);
     rfs_inode->inode_no = inode_no;
     rfs_inode->mode = mode;
     if (S_ISDIR(mode)) {
@@ -200,7 +194,7 @@ int rfs_create_inode(struct inode *dir, struct dentry *dentry,
     }
 
     /* Create VFS inode */
-    inode = new_inode(sb);
+    auto inode = new_inode(sb);
     if (!inode) {
         return -ENOMEM;
     }
@@ -240,25 +234,20 @@ int rfs_mkdir(struct inode *dir, struct dentry *dentry,
 struct dentry *rfs_lookup(struct inode *dir,
                               struct dentry *child_dentry,
                               unsigned int flags) {
-    struct rfs_inode *parent_rfs_inode = RFS_INODE(dir);
-    struct super_block *sb = dir->i_sb;
-    struct buffer_head *bh;
-    struct rfs_dir_record *dir_record;
-    struct rfs_inode *rfs_child_inode;
-    struct inode *child_inode;
-    uint64_t i;
     RLIB_KTRACE_FUNC(rfs_lookup);
 
-    bh = sb_bread(sb, parent_rfs_inode->data_block_no);
+    auto parent_rfs_inode = RFS_INODE(dir);
+    auto sb = dir->i_sb;
+    auto bh = sb_bread(sb, parent_rfs_inode->data_block_no);
     BUG_ON(!bh);
 
-    dir_record = (struct rfs_dir_record *)bh->b_data;
+    auto dir_record = (struct rfs_dir_record *)bh->b_data;
 
-    for (i = 0; i < parent_rfs_inode->dir_children_count; i++) {
-        printk(KERN_INFO "rfs_lookup: i=%llu, dir_record->filename=%s, child_dentry->d_name.name=%s", i, dir_record->filename, child_dentry->d_name.name);    // TODO
+    for (auto i = 0; i < parent_rfs_inode->dir_children_count; i++) {
+        printk(KERN_INFO "rfs_lookup: i=%d, dir_record->filename=%s, child_dentry->d_name.name=%s", i, dir_record->filename, child_dentry->d_name.name);    // TODO
         if (0 == strcmp(dir_record->filename, child_dentry->d_name.name)) {
-            rfs_child_inode = rfs_get_rfs_inode(sb, dir_record->inode_no);
-            child_inode = new_inode(sb);
+            auto rfs_child_inode = rfs_get_rfs_inode(sb, dir_record->inode_no);
+            auto child_inode = new_inode(sb);
             if (!child_inode) {
                 printk(KERN_ERR "Cannot create new inode. No memory.\n");
                 return NULL; 
