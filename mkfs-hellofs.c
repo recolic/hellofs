@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "hellofs.h"
 
@@ -75,6 +76,7 @@ int main(int argc, char *argv[]) {
 
     ret = 0;
     do {
+        assert(sizeof(hellofs_sb) <= hellofs_sb.blocksize);
         // write super block
         if (sizeof(hellofs_sb)
                 != write(fd, &hellofs_sb, sizeof(hellofs_sb))) {
@@ -118,6 +120,9 @@ int main(int argc, char *argv[]) {
             break;
         }
 
+        printf("block size = %d, debug sizes=(sb)%d,(in_bitm)%d,(db_bitm)%d,(in_size)%d\n", hellofs_sb.blocksize, sizeof(hellofs_sb), sizeof(inode_bitmap), sizeof(data_block_bitmap), sizeof(root_hellofs_inode));
+        printf("Writing root inode data block at pos 0x%x\n", HELLOFS_DATA_BLOCK_TABLE_START_BLOCK_NO_HSB(&hellofs_sb) * hellofs_sb.blocksize);
+        printf("welcome file data block starts at pos 0x%x\n", (HELLOFS_DATA_BLOCK_TABLE_START_BLOCK_NO_HSB(&hellofs_sb)+1) * hellofs_sb.blocksize);
         // write root inode data block
         if ((off_t)-1
                 == lseek(

@@ -8,6 +8,8 @@
 #define HELLOFS_DEFAULT_DATA_BLOCK_TABLE_SIZE 1024
 #define HELLOFS_FILENAME_MAXLEN 255
 
+#include "rlib/macro.hpp"
+
 /* Define filesystem structures */
 
 extern struct mutex hellofs_sb_lock;
@@ -69,5 +71,9 @@ static inline uint64_t HELLOFS_DATA_BLOCK_TABLE_START_BLOCK_NO_HSB(
            + hellofs_sb->inode_table_size / HELLOFS_INODES_PER_BLOCK_HSB(hellofs_sb)
            + 1;
 }
+
+/* Debug function */
+#define RLIB_KTRACE_FUNC(name) \
+    printk(KERN_ALERT "Recolic ktrace: [" RLIB_MACRO_TO_CSTR(name) "] called.\n")
 
 #endif /*__HELLOFS_H__*/

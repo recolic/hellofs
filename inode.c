@@ -1,5 +1,4 @@
 #include "khellofs.h"
-#include <linux/timekeeping.h>
 
 void hellofs_destroy_inode(struct inode *inode) {
     struct hellofs_inode *hellofs_inode = HELLOFS_INODE(inode);
@@ -65,6 +64,9 @@ int hellofs_alloc_hellofs_inode(struct super_block *sb, uint64_t *out_inode_no) 
             break;
         }
     }
+    // Booms if inode buffer is full.
+    // locking critical section is too large, but Im too lazy 
+    //   to have it optimized.
 
     mark_buffer_dirty(bh);
     sync_dirty_buffer(bh);
@@ -249,11 +251,13 @@ int hellofs_create_inode(struct inode *dir, struct dentry *dentry,
 
 int hellofs_create(struct inode *dir, struct dentry *dentry,
                    umode_t mode, bool excl) {
+    RLIB_KTRACE_FUNC(hellofs_create);
     return hellofs_create_inode(dir, dentry, mode);
 }
 
 int hellofs_mkdir(struct inode *dir, struct dentry *dentry,
                   umode_t mode) {
+    RLIB_KTRACE_FUNC(hellofs_mkdir);
     /* @Sankar: The mkdir callback does not have S_IFDIR set.
        Even ext2 sets it explicitly. Perhaps this is a bug */
     mode |= S_IFDIR;
@@ -270,6 +274,7 @@ struct dentry *hellofs_lookup(struct inode *dir,
     struct hellofs_inode *hellofs_child_inode;
     struct inode *child_inode;
     uint64_t i;
+    RLIB_KTRACE_FUNC(hellofs_lookup);
 
     bh = sb_bread(sb, parent_hellofs_inode->data_block_no);
     BUG_ON(!bh);

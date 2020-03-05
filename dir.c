@@ -12,6 +12,7 @@ int hellofs_iterate(struct file *filp, struct dir_context *ctx) {
     struct hellofs_inode *hellofs_inode;
     struct hellofs_dir_record *dir_record;
     uint64_t i;
+    RLIB_KTRACE_FUNC(iterate);
 
     pos = ctx->pos;
     inode = filp->f_path.dentry->d_inode;

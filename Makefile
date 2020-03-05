@@ -1,5 +1,7 @@
 obj-m := hellofs.o
 hellofs-objs := khellofs.o super.o inode.o dir.o file.o
+ccflags-y := -std=gnu99 -Wno-declaration-after-statement
+
 CFLAGS_khellofs.o := -DDEBUG
 CFLAGS_super.o := -DDEBUG
 CFLAGS_inode.o := -DDEBUG
