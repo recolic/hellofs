@@ -1,9 +1,8 @@
 #include "krfs.h"
 
 void rfs_destroy_inode(struct inode *inode) {
-    struct rfs_inode *rfs_inode = RFS_INODE(inode);
-
-    printk(KERN_INFO "Freeing private data of inode %p (%lu)\n",
+    auto rfs_inode = RFS_INODE(inode);
+    printk(KERN_INFO "destroy_inode free private data of %p (%lu)\n",
            rfs_inode, inode->i_ino);
     kmem_cache_free(rfs_inode_cache, rfs_inode);
 }
@@ -36,26 +35,18 @@ void rfs_fill_inode(struct super_block *sb, struct inode *inode,
 
 /* TODO I didn't implement any function to dealloc rfs_inode */
 int rfs_alloc_rfs_inode(struct super_block *sb, uint64_t *out_inode_no) {
-    struct rfs_superblock *rfs_sb;
-    struct buffer_head *bh;
-    uint64_t i;
-    int ret;
-    char *bitmap;
-    char *slot;
-    char needle;
-
-    rfs_sb = RFS_SB(sb);
+    int ret = -ENOSPC;
 
     mutex_lock(&rfs_sb_lock);
 
-    bh = sb_bread(sb, RFS_INODE_BITMAP_BLOCK_NO);
+    auto bh = sb_bread(sb, RFS_INODE_BITMAP_BLOCK_NO);
     BUG_ON(!bh);
+    auto rfs_sb = RFS_SB(sb);
 
-    bitmap = bh->b_data;
-    ret = -ENOSPC;
-    for (i = 0; i < rfs_sb->inode_table_size; i++) {
-        slot = bitmap + i / BITS_IN_BYTE;
-        needle = 1 << (i % BITS_IN_BYTE);
+    auto bitmap = bh->b_data;
+    for (auto i = 0; i < rfs_sb->inode_table_size; i++) {
+        auto slot = bitmap + i / BITS_IN_BYTE;
+        auto needle = 1 << (i % BITS_IN_BYTE);
         if (0 == (*slot & needle)) {
             *out_inode_no = i;
             *slot |= needle;
@@ -77,8 +68,7 @@ int rfs_alloc_rfs_inode(struct super_block *sb, uint64_t *out_inode_no) {
     return ret;
 }
 
-struct rfs_inode *rfs_get_rfs_inode(struct super_block *sb,
-                                                uint64_t inode_no) {
+struct rfs_inode *rfs_get_rfs_inode(struct super_block *sb, uint64_t inode_no) {
     struct buffer_head *bh;
     struct rfs_inode *inode;
     struct rfs_inode *inode_buf;
@@ -94,17 +84,12 @@ struct rfs_inode *rfs_get_rfs_inode(struct super_block *sb,
     return inode_buf;
 }
 
-void rfs_save_rfs_inode(struct super_block *sb,
-                                struct rfs_inode *inode_buf) {
-    struct buffer_head *bh;
-    struct rfs_inode *inode;
-    uint64_t inode_no;
-
-    inode_no = inode_buf->inode_no;
-    bh = sb_bread(sb, RFS_INODE_TABLE_START_BLOCK_NO + RFS_INODE_BLOCK_OFFSET(sb, inode_no));
+void rfs_save_rfs_inode(struct super_block *sb, struct rfs_inode *inode_buf) {
+    auto inode_no = inode_buf->inode_no;
+    auto bh = sb_bread(sb, RFS_INODE_TABLE_START_BLOCK_NO + RFS_INODE_BLOCK_OFFSET(sb, inode_no));
     BUG_ON(!bh);
 
-    inode = (struct rfs_inode *)(bh->b_data + RFS_INODE_BYTE_OFFSET(sb, inode_no));
+    auto inode = (struct rfs_inode *)(bh->b_data + RFS_INODE_BYTE_OFFSET(sb, inode_no));
     memcpy(inode, inode_buf, sizeof(*inode));
 
     mark_buffer_dirty(bh);
@@ -114,20 +99,16 @@ void rfs_save_rfs_inode(struct super_block *sb,
 
 int rfs_add_dir_record(struct super_block *sb, struct inode *dir,
                            struct dentry *dentry, struct inode *inode) {
-    struct buffer_head *bh;
-    struct rfs_inode *parent_rfs_inode;
-    struct rfs_dir_record *dir_record;
-
-    parent_rfs_inode = RFS_INODE(dir);
+    auto parent_rfs_inode = RFS_INODE(dir);
     if (unlikely(parent_rfs_inode->dir_children_count
             >= RFS_DIR_MAX_RECORD(sb))) {
         return -ENOSPC;
     }
 
-    bh = sb_bread(sb, parent_rfs_inode->data_block_no);
+    auto bh = sb_bread(sb, parent_rfs_inode->data_block_no);
     BUG_ON(!bh);
 
-    dir_record = (struct rfs_dir_record *)bh->b_data;
+    auto dir_record = (struct rfs_dir_record *)bh->b_data;
     dir_record += parent_rfs_inode->dir_children_count;
     dir_record->inode_no = inode->i_ino;
     strcpy(dir_record->filename, dentry->d_name.name);
@@ -143,26 +124,18 @@ int rfs_add_dir_record(struct super_block *sb, struct inode *dir,
 }
 
 int rfs_alloc_data_block(struct super_block *sb, uint64_t *out_data_block_no) {
-    struct rfs_superblock *rfs_sb;
-    struct buffer_head *bh;
-    uint64_t i;
-    int ret;
-    char *bitmap;
-    char *slot;
-    char needle;
+    int ret = -ENOSPC;
 
-    rfs_sb = RFS_SB(sb);
-
+    auto rfs_sb = RFS_SB(sb);
     mutex_lock(&rfs_sb_lock);
 
-    bh = sb_bread(sb, RFS_DATA_BLOCK_BITMAP_BLOCK_NO);
+    auto bh = sb_bread(sb, RFS_DATA_BLOCK_BITMAP_BLOCK_NO);
     BUG_ON(!bh);
 
-    bitmap = bh->b_data;
-    ret = -ENOSPC;
-    for (i = 0; i < rfs_sb->data_block_table_size; i++) {
-        slot = bitmap + i / BITS_IN_BYTE;
-        needle = 1 << (i % BITS_IN_BYTE);
+    auto bitmap = bh->b_data;
+    for (auto i = 0; i < rfs_sb->data_block_table_size; i++) {
+        auto slot = bitmap + i / BITS_IN_BYTE;
+        auto needle = 1 << (i % BITS_IN_BYTE);
         if (0 == (*slot & needle)) {
             *out_data_block_no
                 = RFS_DATA_BLOCK_TABLE_START_BLOCK_NO(sb) + i;

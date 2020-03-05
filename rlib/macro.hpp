@@ -1,3 +1,4 @@
+// This header is compatible for both C and C++, requires C99 (double slash comment).
 #ifndef R_MACRO_HPP
 #define R_MACRO_HPP
 

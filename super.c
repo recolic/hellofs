@@ -1,19 +1,14 @@
 #include "krfs.h"
 
 static int rfs_fill_super(struct super_block *sb, void *data, int silent) {
-    struct inode *root_inode;
-    struct rfs_inode *root_rfs_inode;
-    struct buffer_head *bh;
-    struct rfs_superblock *rfs_sb;
     int ret = 0;
 
-    bh = sb_bread(sb, RFS_SUPERBLOCK_BLOCK_NO);
+    auto bh = sb_bread(sb, RFS_SUPERBLOCK_BLOCK_NO);
     BUG_ON(!bh);
-    rfs_sb = (struct rfs_superblock *)bh->b_data;
+    auto rfs_sb = (struct rfs_superblock *)bh->b_data;
     if (unlikely(rfs_sb->magic != RFS_MAGIC)) {
         printk(KERN_ERR
-               "The filesystem being mounted is not of type rfs. "
-               "Magic number mismatch: %llu != %llu\n",
+               "Mount rfs filesystem: Wrong magic number in superblock: %llu != %llu\n",
                rfs_sb->magic, (uint64_t)RFS_MAGIC);
         goto release;
     }
@@ -29,8 +24,8 @@ static int rfs_fill_super(struct super_block *sb, void *data, int silent) {
     sb->s_maxbytes = rfs_sb->blocksize;
     sb->s_op = &rfs_sb_ops;
 
-    root_rfs_inode = rfs_get_rfs_inode(sb, RFS_ROOTDIR_INODE_NO);
-    root_inode = new_inode(sb);
+    auto root_rfs_inode = rfs_get_rfs_inode(sb, RFS_ROOTDIR_INODE_NO);
+    auto root_inode = new_inode(sb);
     if (!root_inode || !root_rfs_inode) {
         ret = -ENOMEM;
         goto release;
@@ -52,8 +47,7 @@ release:
 struct dentry *rfs_mount(struct file_system_type *fs_type,
                              int flags, const char *dev_name,
                              void *data) {
-    struct dentry *ret;
-    ret = mount_bdev(fs_type, flags, dev_name, data, rfs_fill_super);
+    auto ret = mount_bdev(fs_type, flags, dev_name, data, rfs_fill_super);
 
     if (unlikely(IS_ERR(ret))) {
         printk(KERN_ERR "Error mounting rfs.\n");
@@ -76,11 +70,10 @@ void rfs_put_super(struct super_block *sb) {
 }
 
 void rfs_save_sb(struct super_block *sb) {
-    struct buffer_head *bh;
-    struct rfs_superblock *rfs_sb = RFS_SB(sb);
 
-    bh = sb_bread(sb, RFS_SUPERBLOCK_BLOCK_NO);
+    auto bh = sb_bread(sb, RFS_SUPERBLOCK_BLOCK_NO);
     BUG_ON(!bh);
+    auto rfs_sb = RFS_SB(sb);
 
     bh->b_data = (char *)rfs_sb;
     mark_buffer_dirty(bh);

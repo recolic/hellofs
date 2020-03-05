@@ -9,15 +9,33 @@
 #define RFS_FILENAME_MAXLEN 255
 
 #include "rlib/macro.hpp"
+#include "rlib/sys/os.hpp"
+
+#if RLIB_CXX_STD > 0
+#error Not supporting C++ yet.
+#else
+#define auto __auto_type
+#endif
 
 /* Define filesystem structures */
-
-extern struct mutex rfs_sb_lock;
 
 struct rfs_dir_record {
     char filename[RFS_FILENAME_MAXLEN];
     uint64_t inode_no;
 };
+
+struct rfs_superblock {
+    uint64_t version;
+    uint64_t magic;
+    uint64_t blocksize;
+
+    uint64_t inode_table_size;
+    uint64_t inode_count;
+
+    uint64_t data_block_table_size;
+    uint64_t data_block_count;
+};
+extern struct mutex rfs_sb_lock;
 
 struct rfs_inode {
     mode_t mode;
@@ -36,17 +54,6 @@ struct rfs_inode {
     };
 };
 
-struct rfs_superblock {
-    uint64_t version;
-    uint64_t magic;
-    uint64_t blocksize;
-
-    uint64_t inode_table_size;
-    uint64_t inode_count;
-
-    uint64_t data_block_table_size;
-    uint64_t data_block_count;
-};
 
 static const uint64_t RFS_SUPERBLOCK_BLOCK_NO = 0;
 static const uint64_t RFS_INODE_BITMAP_BLOCK_NO = 1;
