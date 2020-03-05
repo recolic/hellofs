@@ -8,17 +8,17 @@ test_mount_point="test-mount-point-$RANDOM"
 
 function create_test_image() {
     dd bs=4096 count=6000 if=/dev/zero of="$1"
-    ./mkfs-hellofs "$1"
+    ./mkfs-rfs "$1"
 }
 
 function mount_fs_image() {
-    insmod ./hellofs.ko
-    mount -o loop,owner,group,users -t hellofs "$1" "$2"
+    insmod ./rfs.ko
+    mount -o loop,owner,group,users -t rfs "$1" "$2"
 }
 
 function unmount_fs() {
     umount "$1"
-    rmmod ./hellofs.ko
+    rmmod ./rfs.ko
 }
 
 function do_some_operations() {
@@ -74,8 +74,8 @@ function do_read_operations()
 
 function cleanup() {
     cd "$root_pwd"
-    mount | grep -q "$test_mount_point" && umount -t hellofs "$test_mount_point"
-    lsmod | grep -q hellofs && rmmod "$root_pwd/hellofs.ko"
+    mount | grep -q "$test_mount_point" && umount -t rfs "$test_mount_point"
+    lsmod | grep -q rfs && rmmod "$root_pwd/rfs.ko"
     rm -fR "$test_dir" "$test_mount_point"
 }
 

@@ -1,47 +1,47 @@
-#include "khellofs.h"
+#include "krfs.h"
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0)
 #error fs api changed in linux 3.11.0. Please use a better kernel to build my code!
 #endif
 
-int hellofs_iterate(struct file *filp, struct dir_context *ctx) {
+int rfs_iterate(struct file *filp, struct dir_context *ctx) {
     loff_t pos;
     struct inode *inode;
     struct super_block *sb;
     struct buffer_head *bh;
-    struct hellofs_inode *hellofs_inode;
-    struct hellofs_dir_record *dir_record;
+    struct rfs_inode *rfs_inode;
+    struct rfs_dir_record *dir_record;
     uint64_t i;
     RLIB_KTRACE_FUNC(iterate);
 
     pos = ctx->pos;
     inode = filp->f_path.dentry->d_inode;
     sb = inode->i_sb;
-    hellofs_inode = HELLOFS_INODE(inode);
+    rfs_inode = RFS_INODE(inode);
 
     if (pos) {
         // TODO @Sankar: we use a hack of reading pos to figure if we have filled in data.
         return 0;
     }
 
-    printk(KERN_INFO "readdir: hellofs_inode->inode_no=%llu", hellofs_inode->inode_no);
+    printk(KERN_INFO "readdir: rfs_inode->inode_no=%llu", rfs_inode->inode_no);
 
-    if (unlikely(!S_ISDIR(hellofs_inode->mode))) {
+    if (unlikely(!S_ISDIR(rfs_inode->mode))) {
         printk(KERN_ERR
                "Inode %llu of dentry %s is not a directory\n",
-               hellofs_inode->inode_no,
+               rfs_inode->inode_no,
                filp->f_path.dentry->d_name.name);
         return -ENOTDIR;
     }
 
-    bh = sb_bread(sb, hellofs_inode->data_block_no);
+    bh = sb_bread(sb, rfs_inode->data_block_no);
     BUG_ON(!bh);
 
-    dir_record = (struct hellofs_dir_record *)bh->b_data;
-    for (i = 0; i < hellofs_inode->dir_children_count; i++) {
-        dir_emit(ctx, dir_record->filename, HELLOFS_FILENAME_MAXLEN, dir_record->inode_no, DT_UNKNOWN);
-        ctx->pos += sizeof(struct hellofs_dir_record);
-        pos += sizeof(struct hellofs_dir_record);
+    dir_record = (struct rfs_dir_record *)bh->b_data;
+    for (i = 0; i < rfs_inode->dir_children_count; i++) {
+        dir_emit(ctx, dir_record->filename, RFS_FILENAME_MAXLEN, dir_record->inode_no, DT_UNKNOWN);
+        ctx->pos += sizeof(struct rfs_dir_record);
+        pos += sizeof(struct rfs_dir_record);
         dir_record++;
     }
     brelse(bh);
