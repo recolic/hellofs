@@ -80,14 +80,6 @@ namespace rlib {
     void println();
     template <typename... Args>
     void print(Args... args);
-    template <typename Iterable, typename Printable>
-    void print_iter(Iterable arg, Printable spliter);
-    template <typename Iterable, typename Printable>
-    void println_iter(Iterable arg, Printable spliter);
-    template <typename Iterable>
-    void print_iter(Iterable arg);
-    template <typename Iterable>
-    void println_iter(Iterable arg);
     template <typename... Args>
     size_t printf(const std::string &fmt, Args... args);
     template <typename... Args>
@@ -100,6 +92,23 @@ namespace rlib {
             static bool instance = true;
             return instance;
         }
+
+        template <typename Iterable, typename Printable>
+        struct _printable_iterable : private std::pair<Iterable, Printable> {
+            using std::pair<Iterable, Printable>::pair;
+            const Iterable &arg() const {return std::pair<Iterable, Printable>::first;}
+            const Printable &spliter() const {return std::pair<Iterable, Printable>::second;}
+        };
+    }
+
+    // 2 more interfaces...
+    template <typename Iterable, typename Printable>
+    const impl::_printable_iterable<Iterable, Printable> printable_iter(Iterable arg, Printable spliter) {
+        return impl::_printable_iterable<Iterable, Printable>(arg, spliter);
+    }
+    template <typename Iterable>
+    const impl::_printable_iterable<Iterable, char> printable_iter(Iterable arg) {
+        return impl::_printable_iterable<Iterable, char>(arg, ' ');
     }
 
     inline bool sync_with_stdio(bool sync = true) noexcept {
@@ -122,47 +131,24 @@ namespace rlib {
     template <typename PrintFinalT>
     void print(std::ostream &os, PrintFinalT reqArg)
     {
-        os << reqArg;
+        os << std::forward<PrintFinalT>(reqArg);
     }
     template <typename Required, typename... Optional>
     void print(std::ostream &os, Required reqArgs, Optional... optiArgs)
     {
         os << reqArgs << ' ';
-        print(os, optiArgs ...);
+        print(os, std::forward<Optional>(optiArgs) ...);
     }
     template <typename... Optional>
     void println(std::ostream &os, Optional... optiArgs)
     {
-        print(os, optiArgs ...);
+        print(os, std::forward<Optional>(optiArgs) ...);
         println(os);
     }
     template <> 
     inline void println(std::ostream &os)
     {
         os << rlib::endl;
-    }
-
-    template <typename Iterable, typename Printable>
-    void print_iter(std::ostream &os, Iterable arg, Printable spliter)
-    {
-        for(const auto & i : arg)
-            os << i << spliter;
-    }
-    template <typename Iterable, typename Printable>
-    void println_iter(std::ostream &os, Iterable arg, Printable spliter)
-    {
-        print_iter(os, arg, spliter);
-        println(os);
-    }
-    template <typename Iterable>
-    void print_iter(std::ostream &os, Iterable arg)
-    {
-        print_iter(os, arg, ' ');
-    }
-    template <typename Iterable>
-    void println_iter(std::ostream &os, Iterable arg)
-    {
-        println_iter(os, arg, ' ');
     }
 
     template <typename... Args>
@@ -195,22 +181,6 @@ namespace rlib {
     void print(Args... args) {
         return print(std::cout, std::forward<Args>(args) ...);
     }
-    template <typename Iterable, typename Printable>
-    void print_iter(Iterable arg, Printable spliter) {
-        return print_iter(std::cout, std::forward<Iterable>(arg), spliter);
-    }
-    template <typename Iterable, typename Printable>
-    void println_iter(Iterable arg, Printable spliter) {
-        return println_iter(std::cout, std::forward<Iterable>(arg), spliter);
-    }
-    template <typename Iterable>
-    void print_iter(Iterable arg) {
-        return print_iter(std::cout, std::forward<Iterable>(arg));
-    }
-    template <typename Iterable>
-    void println_iter(Iterable arg) {
-        return println_iter(std::cout, std::forward<Iterable>(arg));
-    }
     template <typename... Args>
     size_t printf(const std::string &fmt, Args... args) {
         return printf(std::cout, fmt, std::forward<Args>(args) ...);
@@ -237,7 +207,14 @@ namespace rlib {
             std::ostream &, impl::print_wrapper<StreamType>>::type;
         return print(static_cast<ostream_or_data>(os), std::forward<Args>(args) ...);
     }
-}
+} // end namespace rlib
 
+template <typename Iterable, typename Printable>
+std::ostream& operator<< (std::ostream& stream, const rlib::impl::_printable_iterable<Iterable, Printable> &p) {
+    for(auto val : p.arg()) {
+        stream << val << p.spliter();
+    }
+    return stream;
+}
 
 #endif

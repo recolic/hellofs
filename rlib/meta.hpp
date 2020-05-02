@@ -54,6 +54,19 @@ namespace rlib {
     #endif
 
     template <size_t... forwardedArgs> struct argForwarder {};
-}
+
+    namespace impl {
+        template <typename T, std::size_t _>
+        using get_T = T;
+        template <typename T, std::size_t... _>
+        auto make_N_tuple_impl_f(std::index_sequence<_ ...>) {
+            using make_N_tuple_impl = std::tuple<get_T<T, _> ...>;
+            return make_N_tuple_impl();
+        }
+    } // end namespace rlib::impl
+    template <typename T, std::size_t N>
+    using N_tuple_t = decltype(impl::make_N_tuple_impl_f<T>(std::make_integer_sequence<std::size_t, N>()));
+
+} // end namespace rlib
 
 #endif

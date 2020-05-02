@@ -19,7 +19,7 @@ namespace rlib {
                 node *prev;
                 node *next;
                 extra_info_t extra_info; // bool flag. specially designed for object_pool.
-                uint32_t magic = 0x19980427;
+                uint32_t magic = 0x19990823;
                 template <typename... TConstructArgs>
                 node(node *prev, node *next, const extra_info_t &extra_info, TConstructArgs... args) 
                     : data(std::forward<TConstructArgs>(args) ...), prev(prev), next(next), extra_info(extra_info)
@@ -36,7 +36,7 @@ namespace rlib {
                 explicit iterator(node *ptr) : ptr(ptr) {}
 
                 explicit iterator(T *data_pointer) : ptr(reinterpret_cast<node *>(data_pointer)) {
-                    if (ptr->magic != 0x19980427)
+                    if (ptr->magic != 0x19990823)
                         throw std::invalid_argument(
                                 "magic_num verification failed. invalid data_pointer passed or ruined memory?");
                 }

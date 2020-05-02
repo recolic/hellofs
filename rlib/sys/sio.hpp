@@ -631,7 +631,7 @@ namespace rlib {
     private:
 #pragma pack(push, 1)
         struct packed_msg_head {
-            uint32_t magic = 0x19980427;
+            uint32_t magic = 0x19990823;
             uint64_t len;
         };
 #pragma pack(pop)
@@ -640,7 +640,7 @@ namespace rlib {
         static std::string recv_msg(sockfd_t fd) {
             packed_msg_head head;
             recvn_ex(fd, &head, sizeof(head), MSG_NOSIGNAL);
-            if(head.magic != 0x19980427)
+            if(head.magic != 0x19990823)
                 throw std::runtime_error("Invalid magic received.");
             if(head.len > 1024ull*1024*1024*2)
                 throw std::runtime_error("Message len is greater than 2GiB. Refuse to alloc space.");
